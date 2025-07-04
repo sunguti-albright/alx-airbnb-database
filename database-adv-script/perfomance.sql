@@ -21,7 +21,9 @@ SELECT
 FROM booking b
 JOIN "User" u ON b.user_id = u.user_id
 JOIN property p ON b.property_id = p.property_id
-JOIN payment pay ON b.booking_id = pay.booking_id;
+JOIN payment pay ON b.booking_id = pay.booking_id
+WHERE b.status = 'confirmed'
+  AND pay.status = 'completed';
 
 -- ==========================================
 -- Optimized Query (After Indexing + Reduced SELECT)
@@ -39,4 +41,6 @@ SELECT
 FROM booking b
 JOIN "User" u ON b.user_id = u.user_id
 JOIN property p ON b.property_id = p.property_id
-LEFT JOIN payment pay ON b.booking_id = pay.booking_id;
+LEFT JOIN payment pay ON b.booking_id = pay.booking_id
+WHERE b.status = 'confirmed'
+  AND (pay.status = 'completed' OR pay.status IS NULL);
