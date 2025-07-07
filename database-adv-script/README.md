@@ -52,3 +52,24 @@ This directory demonstrates the use of SQL aggregation (`COUNT`, `GROUP BY`) and
    - Uses `RANK()` window function to assign a ranking to each property based on the number of bookings.  
    - Properties with the same booking count share the same rank.  
    - Results are ordered by rank, showing the most booked properties first.
+
+
+---
+# Aggregations and Window Functions
+
+This directory demonstrates the use of SQL aggregation (`COUNT`, `GROUP BY`) and window functions (`ROW_NUMBER`, `RANK`) on the Airbnb database.
+
+## Files
+- **aggregations_and_window_functions.sql**: Contains SQL queries using aggregations and window functions.
+- **README.md**: This file.
+
+## Queries Overview
+1. **Total Bookings by User (Aggregation)**  
+   - Uses `COUNT` to calculate the total number of bookings per user.  
+   - Groups results by user and orders them by the number of bookings in descending order.  
+   - Ensures users with no bookings are still listed (via `LEFT JOIN`).
+
+2. **Ranking Properties (Window Functions)**  
+   - **ROW_NUMBER()** assigns a unique sequential number to each property ordered by booking count.  
+   - **RANK()** assigns rankings, allowing ties if multiple properties have the same booking count.  
+   - Both show the most booked properties first.
