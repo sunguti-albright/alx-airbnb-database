@@ -10,3 +10,24 @@ This directory contains SQL scripts demonstrating the use of INNER JOIN, LEFT JO
 1. **INNER JOIN** → Retrieves all bookings along with the users who made them.
 2. **LEFT JOIN** → Retrieves all properties and their reviews, including properties with no reviews.
 3. **FULL OUTER JOIN** → Retrieves all users and all bookings, even if the user has no booking or the booking is not linked to a user.
+
+---
+
+# Subqueries
+
+This section demonstrates both **non-correlated** and **correlated** subqueries in SQL.
+
+## Files
+- **subqueries.sql**: Contains SQL queries using subqueries.
+- **README.md**: This file.
+
+## Queries Overview
+1. **Properties with Average Rating > 4.0 (Non-Correlated Subquery)**  
+   - Finds all properties whose average rating is greater than 4.0.  
+   - Uses a subquery to calculate the average rating per property.  
+   - The outer query returns only those properties meeting the condition.
+
+2. **Users with More Than 3 Bookings (Correlated Subquery)**  
+   - Identifies users who have made more than three bookings.  
+   - Uses a correlated subquery where the inner query counts bookings for each user.  
+   - Only users with more than 3 bookings are included.
