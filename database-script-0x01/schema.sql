@@ -1,186 +1,167 @@
+-- AirBnB Database Seed Data - Data Insertion Only
+-- This script populates existing tables with sample data
 
--- Enable UUID extension
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+-- 1. Insert User Roles (only if they don't exist)
+INSERT INTO userrole (role_name, description)
+SELECT 'guest', 'Regular user who can book properties'
+WHERE NOT EXISTS (SELECT 1 FROM userrole WHERE role_name = 'guest');
 
--- Create UserRole table (normalized from ENUM)
-CREATE TABLE UserRole (
-    role_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    role_name VARCHAR(20) NOT NULL UNIQUE,
-    description TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+INSERT INTO userrole (role_name, description)
+SELECT 'host', 'User who can list and manage properties'
+WHERE NOT EXISTS (SELECT 1 FROM userrole WHERE role_name = 'host');
 
--- Create Location table (normalized from Property table)
-CREATE TABLE Location (
-    location_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    address VARCHAR NOT NULL,
-    city VARCHAR NOT NULL,
-    state VARCHAR NOT NULL,
-    country VARCHAR NOT NULL,
-    zip_code VARCHAR,
-    latitude DECIMAL(10, 8),
-    longitude DECIMAL(11, 8),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+INSERT INTO userrole (role_name, description)
+SELECT 'admin', 'Administrator with full system access'
+WHERE NOT EXISTS (SELECT 1 FROM userrole WHERE role_name = 'admin');
 
--- Create User table
-CREATE TABLE "User" (
-    user_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    role_id UUID NOT NULL,
-    first_name VARCHAR NOT NULL,
-    last_name VARCHAR NOT NULL,
-    email VARCHAR UNIQUE NOT NULL,
-    password_hash VARCHAR NOT NULL,
-    phone_number VARCHAR,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (role_id) REFERENCES UserRole(role_id)
-);
+-- 2. Insert Users (only if they don't exist)
+INSERT INTO "User" (role_id, first_name, last_name, email, password_hash, phone_number)
+SELECT 
+    (SELECT role_id FROM userrole WHERE role_name = 'host'),
+    'Sarah', 'Johnson', 'sarah.johnson@email.com', '$2b$10$examplehash', '+1-555-0101'
+WHERE NOT EXISTS (SELECT 1 FROM "User" WHERE email = 'sarah.johnson@email.com');
 
--- Create Property table
-CREATE TABLE Property (
-    property_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    host_id UUID NOT NULL,
-    location_id UUID NOT NULL,
-    name VARCHAR NOT NULL,
-    description TEXT NOT NULL,
-    pricepernight DECIMAL NOT NULL CHECK (pricepernight >= 0),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (host_id) REFERENCES "User"(user_id),
-    FOREIGN KEY (location_id) REFERENCES Location(location_id)
-);
+INSERT INTO "User" (role_id, first_name, last_name, email, password_hash, phone_number)
+SELECT 
+    (SELECT role_id FROM userrole WHERE role_name = 'host'),
+    'Mike', 'Chen', 'mike.chen@email.com', '$2b$10$examplehash', '+1-555-0102'
+WHERE NOT EXISTS (SELECT 1 FROM "User" WHERE email = 'mike.chen@email.com');
 
--- Create Booking table
-CREATE TABLE Booking (
-    booking_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    property_id UUID NOT NULL,
-    user_id UUID NOT NULL,
-    start_date DATE NOT NULL,
-    end_date DATE NOT NULL,
-    status VARCHAR(20) NOT NULL CHECK (status IN ('pending', 'confirmed', 'canceled')),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (property_id) REFERENCES Property(property_id),
-    FOREIGN KEY (user_id) REFERENCES "User"(user_id),
-    CHECK (start_date < end_date)
-);
+INSERT INTO "User" (role_id, first_name, last_name, email, password_hash, phone_number)
+SELECT 
+    (SELECT role_id FROM userrole WHERE role_name = 'host'),
+    'Lisa', 'Rodriguez', 'lisa.rodriguez@email.com', '$2b$10$examplehash', '+1-555-0103'
+WHERE NOT EXISTS (SELECT 1 FROM "User" WHERE email = 'lisa.rodriguez@email.com');
 
--- Create Payment table
-CREATE TABLE Payment (
-    payment_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    booking_id UUID NOT NULL UNIQUE,
-    amount DECIMAL NOT NULL CHECK (amount > 0),
-    payment_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    payment_method VARCHAR(20) NOT NULL CHECK (payment_method IN ('credit_card', 'paypal', 'stripe')),
-    FOREIGN KEY (booking_id) REFERENCES Booking(booking_id)
-);
+INSERT INTO "User" (role_id, first_name, last_name, email, password_hash, phone_number)
+SELECT 
+    (SELECT role_id FROM userrole WHERE role_name = 'guest'),
+    'David', 'Kim', 'david.kim@email.com', '$2b$10$examplehash', '+1-555-0104'
+WHERE NOT EXISTS (SELECT 1 FROM "User" WHERE email = 'david.kim@email.com');
 
--- Create Review table
-CREATE TABLE Review (
-    review_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    property_id UUID NOT NULL,
-    user_id UUID NOT NULL,
-    rating INTEGER NOT NULL CHECK (rating >= 1 AND rating <= 5),
-    comment TEXT NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (property_id) REFERENCES Property(property_id),
-    FOREIGN KEY (user_id) REFERENCES "User"(user_id)
-);
+INSERT INTO "User" (role_id, first_name, last_name, email, password_hash, phone_number)
+SELECT 
+    (SELECT role_id FROM userrole WHERE role_name = 'guest'),
+    'Emily', 'Wilson', 'emily.wilson@email.com', '$2b$10$examplehash', '+1-555-0105'
+WHERE NOT EXISTS (SELECT 1 FROM "User" WHERE email = 'emily.wilson@email.com');
 
--- Create Message table
-CREATE TABLE Message (
-    message_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    sender_id UUID NOT NULL,
-    recipient_id UUID NOT NULL,
-    message_body TEXT NOT NULL,
-    sent_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (sender_id) REFERENCES "User"(user_id),
-    FOREIGN KEY (recipient_id) REFERENCES "User"(user_id)
-);
+INSERT INTO "User" (role_id, first_name, last_name, email, password_hash, phone_number)
+SELECT 
+    (SELECT role_id FROM userrole WHERE role_name = 'guest'),
+    'James', 'Brown', 'james.brown@email.com', '$2b$10$examplehash', '+1-555-0106'
+WHERE NOT EXISTS (SELECT 1 FROM "User" WHERE email = 'james.brown@email.com');
 
--- Create PropertyAudit table for tracking price changes
-CREATE TABLE PropertyAudit (
-    audit_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    property_id UUID NOT NULL,
-    host_id UUID NOT NULL,
-    old_price DECIMAL,
-    new_price DECIMAL,
-    changed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    changed_by UUID,
-    FOREIGN KEY (property_id) REFERENCES Property(property_id),
-    FOREIGN KEY (host_id) REFERENCES "User"(user_id),
-    FOREIGN KEY (changed_by) REFERENCES "User"(user_id)
-);
+INSERT INTO "User" (role_id, first_name, last_name, email, password_hash, phone_number)
+SELECT 
+    (SELECT role_id FROM userrole WHERE role_name = 'guest'),
+    'Maria', 'Garcia', 'maria.garcia@email.com', '$2b$10$examplehash', '+1-555-0107'
+WHERE NOT EXISTS (SELECT 1 FROM "User" WHERE email = 'maria.garcia@email.com');
 
--- Create indexes for better performance
+INSERT INTO "User" (role_id, first_name, last_name, email, password_hash, phone_number)
+SELECT 
+    (SELECT role_id FROM userrole WHERE role_name = 'guest'),
+    'Robert', 'Taylor', 'robert.taylor@email.com', '$2b$10$examplehash', '+1-555-0108'
+WHERE NOT EXISTS (SELECT 1 FROM "User" WHERE email = 'robert.taylor@email.com');
 
--- User table indexes
-CREATE INDEX idx_user_email ON "User"(email);
-CREATE INDEX idx_user_role ON "User"(role_id);
+INSERT INTO "User" (role_id, first_name, last_name, email, password_hash, phone_number)
+SELECT 
+    (SELECT role_id FROM userrole WHERE role_name = 'admin'),
+    'Admin', 'User', 'admin@airbnb.com', '$2b$10$adminhash', '+1-555-0000'
+WHERE NOT EXISTS (SELECT 1 FROM "User" WHERE email = 'admin@airbnb.com');
 
--- Property table indexes
-CREATE INDEX idx_property_host ON Property(host_id);
-CREATE INDEX idx_property_location ON Property(location_id);
-CREATE INDEX idx_property_price ON Property(pricepernight);
+-- 3. Insert Locations (only if they don't exist)
+INSERT INTO location (address, city, state, country, zip_code, latitude, longitude)
+SELECT '123 Ocean Drive', 'Miami Beach', 'FL', 'USA', '33139', 25.7617, -80.1918
+WHERE NOT EXISTS (SELECT 1 FROM location WHERE address = '123 Ocean Drive');
 
--- Booking table indexes
-CREATE INDEX idx_booking_property ON Booking(property_id);
-CREATE INDEX idx_booking_user ON Booking(user_id);
-CREATE INDEX idx_booking_dates ON Booking(start_date, end_date);
-CREATE INDEX idx_booking_status ON Booking(status);
+INSERT INTO location (address, city, state, country, zip_code, latitude, longitude)
+SELECT '456 Broadway', 'New York', 'NY', 'USA', '10012', 40.7128, -74.0060
+WHERE NOT EXISTS (SELECT 1 FROM location WHERE address = '456 Broadway');
 
--- Payment table indexes
-CREATE INDEX idx_payment_booking ON Payment(booking_id);
-CREATE INDEX idx_payment_date ON Payment(payment_date);
+INSERT INTO location (address, city, state, country, zip_code, latitude, longitude)
+SELECT '789 Sunset Blvd', 'Los Angeles', 'CA', 'USA', '90046', 34.0522, -118.2437
+WHERE NOT EXISTS (SELECT 1 FROM location WHERE address = '789 Sunset Blvd');
 
--- Review table indexes
-CREATE INDEX idx_review_property ON Review(property_id);
-CREATE INDEX idx_review_user ON Review(user_id);
-CREATE INDEX idx_review_rating ON Review(rating);
+INSERT INTO location (address, city, state, country, zip_code, latitude, longitude)
+SELECT '101 Mountain View', 'Denver', 'CO', 'USA', '80202', 39.7392, -104.9903
+WHERE NOT EXISTS (SELECT 1 FROM location WHERE address = '101 Mountain View');
 
--- Message table indexes
-CREATE INDEX idx_message_sender ON Message(sender_id);
-CREATE INDEX idx_message_recipient ON Message(recipient_id);
-CREATE INDEX idx_message_sent_at ON Message(sent_at);
+INSERT INTO location (address, city, state, country, zip_code, latitude, longitude)
+SELECT '202 Lake Shore Dr', 'Chicago', 'IL', 'USA', '60611', 41.8781, -87.6298
+WHERE NOT EXISTS (SELECT 1 FROM location WHERE address = '202 Lake Shore Dr');
 
--- PropertyAudit table indexes
-CREATE INDEX idx_audit_property ON PropertyAudit(property_id);
-CREATE INDEX idx_audit_changed_at ON PropertyAudit(changed_at);
+-- 4. Insert Properties (only if they don't exist)
+INSERT INTO property (host_id, location_id, name, description, pricepernight)
+SELECT 
+    (SELECT user_id FROM "User" WHERE email = 'sarah.johnson@email.com'),
+    (SELECT location_id FROM location WHERE address = '123 Ocean Drive'),
+    'Beachfront Paradise', 
+    'Beautiful beachfront condo with stunning ocean views, fully equipped kitchen, and private balcony. Perfect for romantic getaways or family vacations.', 
+    250.00
+WHERE NOT EXISTS (SELECT 1 FROM property WHERE name = 'Beachfront Paradise');
 
--- Insert default user roles
-INSERT INTO UserRole (role_id, role_name, description) VALUES
-(uuid_generate_v4(), 'guest', 'Regular user who can book properties'),
-(uuid_generate_v4(), 'host', 'User who can list and manage properties'),
-(uuid_generate_v4(), 'admin', 'Administrator with full system access');
+INSERT INTO property (host_id, location_id, name, description, pricepernight)
+SELECT 
+    (SELECT user_id FROM "User" WHERE email = 'sarah.johnson@email.com'),
+    (SELECT location_id FROM location WHERE address = '456 Broadway'),
+    'NYC Luxury Loft', 
+    'Spacious loft in the heart of Manhattan, featuring high ceilings, modern amenities, and easy access to all major attractions.', 
+    350.00
+WHERE NOT EXISTS (SELECT 1 FROM property WHERE name = 'NYC Luxury Loft');
 
--- Create function to update updated_at timestamp
-CREATE OR REPLACE FUNCTION update_updated_at_column()
-RETURNS TRIGGER AS $$
-BEGIN
-    NEW.updated_at = CURRENT_TIMESTAMP;
-    RETURN NEW;
-END;
-$$ language 'plpgsql';
+INSERT INTO property (host_id, location_id, name, description, pricepernight)
+SELECT 
+    (SELECT user_id FROM "User" WHERE email = 'mike.chen@email.com'),
+    (SELECT location_id FROM location WHERE address = '789 Sunset Blvd'),
+    'Hollywood Hills Retreat', 
+    'Private villa with panoramic city views, infinity pool, and outdoor entertainment area. Perfect for luxury seekers.', 
+    500.00
+WHERE NOT EXISTS (SELECT 1 FROM property WHERE name = 'Hollywood Hills Retreat');
 
--- Create trigger to automatically update updated_at
-CREATE TRIGGER update_property_updated_at 
-    BEFORE UPDATE ON Property
-    FOR EACH ROW
-    EXECUTE FUNCTION update_updated_at_column();
+INSERT INTO property (host_id, location_id, name, description, pricepernight)
+SELECT 
+    (SELECT user_id FROM "User" WHERE email = 'mike.chen@email.com'),
+    (SELECT location_id FROM location WHERE address = '101 Mountain View'),
+    'Mountain Cabin', 
+    'Cozy log cabin with fireplace, hot tub, and access to hiking trails. Ideal for nature lovers and outdoor enthusiasts.', 
+    180.00
+WHERE NOT EXISTS (SELECT 1 FROM property WHERE name = 'Mountain Cabin');
 
--- Create function to log price changes
-CREATE OR REPLACE FUNCTION log_price_change()
-RETURNS TRIGGER AS $$
-BEGIN
-    IF OLD.pricepernight IS DISTINCT FROM NEW.pricepernight THEN
-        INSERT INTO PropertyAudit (property_id, host_id, old_price, new_price, changed_by)
-        VALUES (OLD.property_id, OLD.host_id, OLD.pricepernight, NEW.pricepernight, CURRENT_USER);
-    END IF;
-    RETURN NEW;
-END;
-$$ language 'plpgsql';
+INSERT INTO property (host_id, location_id, name, description, pricepernight)
+SELECT 
+    (SELECT user_id FROM "User" WHERE email = 'lisa.rodriguez@email.com'),
+    (SELECT location_id FROM location WHERE address = '202 Lake Shore Dr'),
+    'Downtown Chic Apartment', 
+    'Modern apartment in the heart of Chicago, steps away from restaurants, shopping, and cultural attractions.', 
+    220.00
+WHERE NOT EXISTS (SELECT 1 FROM property WHERE name = 'Downtown Chic Apartment');
 
--- Create trigger to log price changes
-CREATE TRIGGER track_price_changes
-    AFTER UPDATE OF pricepernight ON Property
-    FOR EACH ROW
-    EXECUTE FUNCTION log_price_change();
+INSERT INTO property (host_id, location_id, name, description, pricepernight)
+SELECT 
+    (SELECT user_id FROM "User" WHERE email = 'lisa.rodriguez@email.com'),
+    (SELECT location_id FROM location WHERE address = '456 Broadway'),
+    'Broadway Studio', 
+    'Compact but stylish studio perfect for solo travelers or couples exploring New York City.', 
+    150.00
+WHERE NOT EXISTS (SELECT 1 FROM property WHERE name = 'Broadway Studio');
+
+INSERT INTO property (host_id, location_id, name, description, pricepernight)
+SELECT 
+    (SELECT user_id FROM "User" WHERE email = 'lisa.rodriguez@email.com'),
+    (SELECT location_id FROM location WHERE address = '789 Sunset Blvd'),
+    'LA Bungalow', 
+    'Charming bungalow with California vibe, private garden, and easy access to beaches and Hollywood.', 
+    195.00
+WHERE NOT EXISTS (SELECT 1 FROM property WHERE name = 'LA Bungalow');
+
+INSERT INTO property (host_id, location_id, name, description, pricepernight)
+SELECT 
+    (SELECT user_id FROM "User" WHERE email = 'lisa.rodriguez@email.com'),
+    (SELECT location_id FROM location WHERE address = '123 Ocean Drive'),
+    'Miami Art Deco Studio', 
+    'Historic art deco building studio with character, located in South Beach near nightlife and restaurants.', 
+    175.00
+WHERE NOT EXISTS (SELECT 1 FROM property WHERE name = 'Miami Art Deco Studio');
+
+-- Display success message
+SELECT 'Database seeded successfully with sample data!' AS message;
