@@ -1,5 +1,3 @@
--- AirBnB Database Schema
--- Created based on specification with normalization to 3NF
 
 -- Enable UUID extension
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
