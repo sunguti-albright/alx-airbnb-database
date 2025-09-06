@@ -163,5 +163,91 @@ SELECT
     175.00
 WHERE NOT EXISTS (SELECT 1 FROM property WHERE name = 'Miami Art Deco Studio');
 
+-- ========== BOOKINGS ==========
+
+-- Sarah -> Beachfront Paradise
+INSERT INTO booking (user_id, property_id, start_date, end_date, status, created_at)
+SELECT
+  (SELECT user_id FROM "User" WHERE email = 'sarah.johnson@email.com'),
+  (SELECT property_id FROM property WHERE name = 'Beachfront Paradise'),
+  DATE '2025-09-10', DATE '2025-09-15', 'confirmed', NOW()
+WHERE NOT EXISTS (
+  SELECT 1 FROM booking b
+  WHERE b.user_id = (SELECT user_id FROM "User" WHERE email = 'sarah.johnson@email.com')
+    AND b.property_id = (SELECT property_id FROM property WHERE name = 'Beachfront Paradise')
+    AND b.start_date = DATE '2025-09-10' AND b.end_date = DATE '2025-09-15'
+);
+
+-- Mike -> NYC Luxury Loft
+INSERT INTO booking (user_id, property_id, start_date, end_date, status, created_at)
+SELECT
+  (SELECT user_id FROM "User" WHERE email = 'mike.chen@email.com'),
+  (SELECT property_id FROM property WHERE name = 'NYC Luxury Loft'),
+  DATE '2025-09-12', DATE '2025-09-18', 'pending', NOW()
+WHERE NOT EXISTS (
+  SELECT 1 FROM booking b
+  WHERE b.user_id = (SELECT user_id FROM "User" WHERE email = 'mike.chen@email.com')
+    AND b.property_id = (SELECT property_id FROM property WHERE name = 'NYC Luxury Loft')
+    AND b.start_date = DATE '2025-09-12' AND b.end_date = DATE '2025-09-18'
+);
+
+-- Lisa -> Hollywood Hills Retreat
+INSERT INTO booking (user_id, property_id, start_date, end_date, status, created_at)
+SELECT
+  (SELECT user_id FROM "User" WHERE email = 'lisa.rodriguez@email.com'),
+  (SELECT property_id FROM property WHERE name = 'Hollywood Hills Retreat'),
+  DATE '2025-09-20', DATE '2025-09-25', 'cancelled', NOW()
+WHERE NOT EXISTS (
+  SELECT 1 FROM booking b
+  WHERE b.user_id = (SELECT user_id FROM "User" WHERE email = 'lisa.rodriguez@email.com')
+    AND b.property_id = (SELECT property_id FROM property WHERE name = 'Hollywood Hills Retreat')
+    AND b.start_date = DATE '2025-09-20' AND b.end_date = DATE '2025-09-25'
+);
+
+-- ========== REVIEWS ==========
+
+-- Sarah reviews Beachfront Paradise
+INSERT INTO review (property_id, user_id, rating, comment, created_at)
+SELECT
+  (SELECT property_id FROM property WHERE name = 'Beachfront Paradise'),
+  (SELECT user_id FROM "User" WHERE email = 'sarah.johnson@email.com'),
+  5, 'Amazing beachfront stay! Highly recommended.', NOW()
+WHERE NOT EXISTS (
+  SELECT 1 FROM review r
+  WHERE r.property_id = (SELECT property_id FROM property WHERE name = 'Beachfront Paradise')
+    AND r.user_id = (SELECT user_id FROM "User" WHERE email = 'sarah.johnson@email.com')
+    AND r.rating = 5
+    AND r.comment = 'Amazing beachfront stay! Highly recommended.'
+);
+
+-- Mike reviews NYC Luxury Loft
+INSERT INTO review (property_id, user_id, rating, comment, created_at)
+SELECT
+  (SELECT property_id FROM property WHERE name = 'NYC Luxury Loft'),
+  (SELECT user_id FROM "User" WHERE email = 'mike.chen@email.com'),
+  4, 'Beautiful loft, but a bit noisy at night.', NOW()
+WHERE NOT EXISTS (
+  SELECT 1 FROM review r
+  WHERE r.property_id = (SELECT property_id FROM property WHERE name = 'NYC Luxury Loft')
+    AND r.user_id = (SELECT user_id FROM "User" WHERE email = 'mike.chen@email.com')
+    AND r.rating = 4
+    AND r.comment = 'Beautiful loft, but a bit noisy at night.'
+);
+
+-- Lisa reviews Hollywood Hills Retreat
+INSERT INTO review (property_id, user_id, rating, comment, created_at)
+SELECT
+  (SELECT property_id FROM property WHERE name = 'Hollywood Hills Retreat'),
+  (SELECT user_id FROM "User" WHERE email = 'lisa.rodriguez@email.com'),
+  3, 'Great view, but the pool was closed.', NOW()
+WHERE NOT EXISTS (
+  SELECT 1 FROM review r
+  WHERE r.property_id = (SELECT property_id FROM property WHERE name = 'Hollywood Hills Retreat')
+    AND r.user_id = (SELECT user_id FROM "User" WHERE email = 'lisa.rodriguez@email.com')
+    AND r.rating = 3
+    AND r.comment = 'Great view, but the pool was closed.'
+);
+
+
 -- Display success message
 SELECT 'Database seeded successfully with sample data!' AS message;
